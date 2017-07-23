@@ -8,8 +8,7 @@
 # Output Options:
 # Advanced Options:
 # Destructive Options (will write output to /tmp):
-#  '(-/+ *)'lcmain"[Toggle pre-Mountain-Lion/iOS6 compatibility (LC_UNIXTHREAD/LC_MAIN)]" \
-#  '(-/+ *)'enc"[Mark as decrypted/encrypted (toggles cryptid of LC_ENCRYPTION_INFO[64])]"
+# 
 _arguments \
   '*: :->files' \
   '-h[print header (ELF or Mach-O)]' \
@@ -41,33 +40,112 @@ _arguments \
   '-r[Remove/Resize (Experimental)]:__SEGMENT[.__section],[_offset][,size] (null):->segment' \
   '-rL[Library]:_dylib/soname_:->dylib' \
   '-rC[Load Command]:_Load_Command_#_:->command' \
-  '(-+ ##)'-pie"[Toggle Position Independent Executable (ASLR)]"
+  '-pie[Toggle Position Independent Executable (ASLR)]' \
+  '+pie[Toggle Position Independent Executable (ASLR)]' \
+  '-lcmain[Toggle pre-Mountain-Lion/iOS6 compatibility (LC_UNIXTHREAD/LC_MAIN)]' \
+  '+lcmain[Toggle pre-Mountain-Lion/iOS6 compatibility (LC_UNIXTHREAD/LC_MAIN)]' \
+  '-enc[Toggles cryptid of LC_ENCRYPTION_INFO_64]' \
+  '+enc[Toggles cryptid of LC_ENCRYPTION_INFO_64]' \
+  '-d[disassemble/dump (experimental) _arg_ may specify address/section/symbol/Obj-C class]:_arg_:->segment' \
+  '-dA[Disassemble as ARM code (32-bit instructions)]:[_arg_[,size]]:->disas' \
+  '-dT[Disassemble as Thumb/Thumb-2 code (16/32-bit instructions)]:[_arg_[,size]]:->disas' \
+  '-dD[Dump (even on a text segment)]:[_arg_[,size]]:->disas' \
+  '-do[Dump/Disassemble from offset, rather than address]:[_arg_[,size]]:->disas' \
+  '-d objc[Dump objective-C classes in binary, if any]' \
+  '-D[As -d, but attempts to decompile only (i.e. shows only C-level code, no disassembly	(null)]' \
+  '-opcodes[Also dump opcode bytes]' \
+  '--jtooldir[path to search for companion jtool files (default: $PWD)]:_path_:->_files' \
+  '--pages[Show file page map (similar to pagestuff(1))]' \
+  '-a[Find offset/segment corresponding to virtual address _addr_]:_addr_->address' \
+  '-o[Find virtual address corresponding to file offset _offset_]:_offset_:->offset' \
+  '-e[Extract section/segment _name_ in binary, or file _name_ from shared cache]:_name_:->extract' \
+  '-e[Extract selected architecture from FAT file. Specify arch with -arch .. or ARCH=]:Architecture:->extract' \
+  '-e[Extract code signature from binary]:Signature:->extract' \
+  '-F[find all occurrences of _string_ in binary]:[_string_]:->()' \
+  '-Fs[also show search results (experimental)]:[_string_]:->()' \
+  '-S[List Symbols (like NM)]' \
+  '-Sd[Remove symbolname for address (to .jtool)]:_symbolname_:->dylib' \
+  '-Sa[Add symbolname manually for address (to .jtool)]:_address_:->address:_symbolname_:->dylib' \
+  '-p[Peek at _size_ bytes in virtual _address_ in binary (like OD, but on memory)]:addr:->address::_size_:()' \
 
 
 case "$state" in
   archs)
-    archs=( \
-    "arm64" \
-    "armv7" \
-    "armv7s" \
-    "i386" \
-    "x86_64" \
+    archs=(   \
+    "arm64"   \
+    "armv7"   \
+    "armv7s"  \
+    "i386"    \
+    "x86_64"  \
     )
     _values "Architecture for use on universal files" $archs
     ;;
-  files)
-    _files
-    ;;
   ident)
+    ;;
+  extract)
+    extract=(   \
+    "arch"      \
+    "signature" \
+    $segment    \
+    )
+    _values "Arch/Signature/Segment to extract" $extract
     ;;
   slide)
     ;;
   address)
+    ;;
+  offset)
     ;;
   dylib)
     ;;
   command)
     ;;
   segment)
+    segment=(                 \
+    "__TEXT.__"               \
+    "__TEXT.__text"           \
+    "__TEXT.__stubs"          \
+    "__TEXT.__stub_helper"    \
+    "__TEXT.__gcc_except_tab" \
+    "__TEXT.__cstring"        \
+    "__TEXT.__objc_methname"  \
+    "__TEXT.__objc_classname" \
+    "__TEXT.__objc_methtype"  \
+    "__TEXT.__const"          \
+    "__TEXT.__ustring"        \
+    "__TEXT.__unwind_info"    \
+    "__DATA.__"               \
+    "__DATA.__nl_symbol_ptr"  \
+    "__DATA.__got"            \
+    "__DATA.__la_symbol_ptr"  \
+    "__DATA.__const"          \
+    "__DATA.__cfstring"       \
+    "__DATA.__objc_classlist" \
+    "__DATA.__objc_nlclslist" \
+    "__DATA.__objc_catlist"   \
+    "__DATA.__objc_protolist" \
+    "__DATA.__objc_imageinfo" \
+    "__DATA.__objc_const"     \
+    "__DATA.__objc_selrefs"   \
+    "__DATA.__objc_protorefs" \
+    "__DATA.__objc_classrefs" \
+    "__DATA.__objc_superrefs" \
+    "__DATA.__objc_ivar"      \
+    "__DATA.__objc_data"      \
+    "__DATA.__data"           \
+    "__DATA.__bss"            \
+    )
+    _values "Possible Mach-O Segments" $segment
+    ;;
+  disas)
+    disas=(     \
+      $segment  \
+      $offset   \
+      $address  \
+    )
+    _values "Possible disassembly options" $disas
+    ;;
+  files)
+    _files
     ;;
 esac
